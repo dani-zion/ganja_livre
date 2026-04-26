@@ -1,13 +1,10 @@
-//go:build ignore
-// +build ignore
-
 package mongodb
 
 import (
 	"context"
 	"time"
 
-	"github.com/ganjaLivre/api/internal/config"
+	"github.com/ganja_livre/api/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

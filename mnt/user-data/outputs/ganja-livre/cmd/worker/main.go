@@ -9,10 +9,10 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 
-	"github.com/ganjaLivre/api/internal/config"
-	"github.com/ganjaLivre/api/internal/mongodb"
-	"github.com/ganjaLivre/api/internal/temporal/activities"
-	"github.com/ganjaLivre/api/internal/temporal/workflows"
+	"github.com/ganja_livre/api/internal/config"
+	"github.com/ganja_livre/api/internal/mongodb"
+	"github.com/ganja_livre/api/internal/temporal/activities"
+	"github.com/ganja_livre/api/internal/temporal/workflows"
 )
 
 func main() {

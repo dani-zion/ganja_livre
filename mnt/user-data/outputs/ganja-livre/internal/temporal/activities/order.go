@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ganjaLivre/api/internal/graph/model"
+	"github.com/ganja_livre/api/internal/graph/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

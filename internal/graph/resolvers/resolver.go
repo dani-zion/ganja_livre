@@ -1,13 +1,10 @@
-//go:build ignore
-// +build ignore
-
 package resolvers
 
 import (
 	"errors"
 
-	"github.com/ganjaLivre/api/internal/auth"
-	"github.com/ganjaLivre/api/internal/mongodb"
+	"github.com/ganja_livre/api/internal/auth"
+	"github.com/ganja_livre/api/internal/mongodb"
 	"go.temporal.io/sdk/client"
 )
 
@@ -31,9 +28,9 @@ func New(cols *mongodb.Collections, jwtSvc *auth.Service, temporalClient client.
 // ─── Sentinel errors (GQL-friendly) ─────────────────────────────────────────
 
 var (
-	errInternal        = errors.New("internal server error")
-	errNotFound        = errors.New("resource not found")
-	errEmailTaken      = errors.New("email already registered")
-	errInvalidToken    = errors.New("invalid or expired token")
+	errInternal           = errors.New("internal server error")
+	errNotFound           = errors.New("resource not found")
+	errEmailTaken         = errors.New("email already registered")
+	errInvalidToken       = errors.New("invalid or expired token")
 	errInvalidCredentials = errors.New("invalid email or password")
 )

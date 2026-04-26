@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ganjaLivre/api/internal/auth"
-	"github.com/ganjaLivre/api/internal/graph/model"
+	"github.com/ganja_livre/api/internal/auth"
+	"github.com/ganja_livre/api/internal/graph/model"
 	"go.uber.org/zap"
 )
 
@@ -96,7 +96,7 @@ type gqlError struct {
 	message string
 }
 
-func (e *gqlError) Error() string        { return e.message }
+func (e *gqlError) Error() string { return e.message }
 func (e *gqlError) Extensions() map[string]interface{} {
 	return map[string]interface{}{"code": e.code}
 }

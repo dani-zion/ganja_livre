@@ -1,6 +1,3 @@
-//go:build ignore
-// +build ignore
-
 package auth
 
 import (
@@ -8,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ganjaLivre/api/internal/config"
-	"github.com/ganjaLivre/api/internal/graph/model"
+	"github.com/ganja_livre/api/internal/config"
+	"github.com/ganja_livre/api/internal/graph/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 

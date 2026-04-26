@@ -20,16 +20,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	"github.com/vektah/gqlparser/v2/ast"
 	"go.temporal.io/sdk/client"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ganjaLivre/api/internal/auth"
-	"github.com/ganjaLivre/api/internal/config"
-	"github.com/ganjaLivre/api/internal/graph/generated"
-	"github.com/ganjaLivre/api/internal/graph/resolvers"
-	appmw "github.com/ganjaLivre/api/internal/middleware"
-	"github.com/ganjaLivre/api/internal/mongodb"
+	"github.com/ganja_livre/api/internal/auth"
+	"github.com/ganja_livre/api/internal/config"
+	"github.com/ganja_livre/api/internal/graph/generated"
+	"github.com/ganja_livre/api/internal/graph/resolvers"
+	appmw "github.com/ganja_livre/api/internal/middleware"
+	"github.com/ganja_livre/api/internal/mongodb"
 )
 
 func main() {

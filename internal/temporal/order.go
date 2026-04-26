@@ -6,8 +6,8 @@ package workflows
 import (
 	"time"
 
-	"github.com/ganjaLivre/api/internal/graph/model"
-	"github.com/ganjaLivre/api/internal/temporal/activities"
+	"github.com/ganja_livre/api/internal/graph/model"
+	"github.com/ganja_livre/api/internal/temporal/activities"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
