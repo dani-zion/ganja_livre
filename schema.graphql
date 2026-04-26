@@ -1,0 +1,234 @@
+# ─────────────────────────────────────────────
+# Ganja Livre – GraphQL Schema
+# ─────────────────────────────────────────────
+
+scalar Time
+scalar Upload
+
+# ─── Enums ────────────────────────────────────
+
+enum ProductCategory {
+  FLOWER
+  OIL
+  EDIBLE
+  EXTRACTION
+}
+
+enum OrderStatus {
+  PENDING
+  PAYMENT_PROCESSING
+  PAYMENT_CONFIRMED
+  PREPARING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum UserRole {
+  CUSTOMER
+  SELLER
+  ADMIN
+}
+
+# ─── User ─────────────────────────────────────
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  role: UserRole!
+  address: Address
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type Address {
+  street: String!
+  number: String!
+  complement: String
+  neighborhood: String!
+  city: String!
+  state: String!
+  zipCode: String!
+  country: String!
+}
+
+# ─── Product ──────────────────────────────────
+
+type Product {
+  id: ID!
+  name: String!
+  description: String!
+  category: ProductCategory!
+  price: Float!
+  stock: Int!
+  thcContent: Float
+  cbdContent: Float
+  strain: String
+  origin: String
+  imageURLs: [String!]!
+  seller: User!
+  isActive: Boolean!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type ProductConnection {
+  edges: [ProductEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductEdge {
+  node: Product!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# ─── Order ────────────────────────────────────
+
+type Order {
+  id: ID!
+  buyer: User!
+  items: [OrderItem!]!
+  totalAmount: Float!
+  status: OrderStatus!
+  shippingAddress: Address!
+  temporalWorkflowID: String!
+  paymentIntentID: String
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type OrderItem {
+  product: Product!
+  quantity: Int!
+  unitPrice: Float!
+  subtotal: Float!
+}
+
+# ─── Auth ─────────────────────────────────────
+
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+# ─── Inputs ───────────────────────────────────
+
+input RegisterInput {
+  email: String!
+  password: String!
+  name: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input AddressInput {
+  street: String!
+  number: String!
+  complement: String
+  neighborhood: String!
+  city: String!
+  state: String!
+  zipCode: String!
+  country: String!
+}
+
+input CreateProductInput {
+  name: String!
+  description: String!
+  category: ProductCategory!
+  price: Float!
+  stock: Int!
+  thcContent: Float
+  cbdContent: Float
+  strain: String
+  origin: String
+  imageURLs: [String!]!
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  price: Float
+  stock: Int
+  thcContent: Float
+  cbdContent: Float
+  strain: String
+  origin: String
+  imageURLs: [String!]
+  isActive: Boolean
+}
+
+input OrderItemInput {
+  productID: ID!
+  quantity: Int!
+}
+
+input PlaceOrderInput {
+  items: [OrderItemInput!]!
+  shippingAddress: AddressInput!
+}
+
+input ProductFilterInput {
+  category: ProductCategory
+  minPrice: Float
+  maxPrice: Float
+  minThc: Float
+  maxThc: Float
+  search: String
+}
+
+# ─── Queries ──────────────────────────────────
+
+type Query {
+  # Public
+  products(
+    filter: ProductFilterInput
+    first: Int
+    after: String
+  ): ProductConnection!
+  product(id: ID!): Product
+
+  # Authenticated
+  me: User!
+  myOrders: [Order!]!
+  order(id: ID!): Order
+
+  # Admin / Seller
+  sellerProducts: [Product!]!
+  allOrders(status: OrderStatus): [Order!]!
+}
+
+# ─── Mutations ────────────────────────────────
+
+type Mutation {
+  # Auth
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  refreshToken(token: String!): AuthPayload!
+
+  # Products (Seller / Admin)
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: ID!, input: UpdateProductInput!): Product!
+  deleteProduct(id: ID!): Boolean!
+
+  # Orders (Customer)
+  placeOrder(input: PlaceOrderInput!): Order!
+  cancelOrder(id: ID!): Order!
+
+  # Admin
+  updateOrderStatus(id: ID!, status: OrderStatus!): Order!
+}
