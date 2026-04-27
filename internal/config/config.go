@@ -1,6 +1,3 @@
-//go:build ignore
-// +build ignore
-
 package config
 
 import (
@@ -40,10 +37,10 @@ type MongoConfig struct {
 }
 
 type JWTConfig struct {
-	AccessSecret        string
-	RefreshSecret       string
-	AccessTokenExpiry   time.Duration
-	RefreshTokenExpiry  time.Duration
+	AccessSecret       string
+	RefreshSecret      string
+	AccessTokenExpiry  time.Duration
+	RefreshTokenExpiry time.Duration
 }
 
 type TemporalConfig struct {

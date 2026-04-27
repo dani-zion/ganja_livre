@@ -1,6 +1,3 @@
-//go:build ignore
-// +build ignore
-
 package model
 
 import (
@@ -23,14 +20,14 @@ const (
 type OrderStatus string
 
 const (
-	StatusPending            OrderStatus = "PENDING"
-	StatusPaymentProcessing  OrderStatus = "PAYMENT_PROCESSING"
-	StatusPaymentConfirmed   OrderStatus = "PAYMENT_CONFIRMED"
-	StatusPreparing          OrderStatus = "PREPARING"
-	StatusShipped            OrderStatus = "SHIPPED"
-	StatusDelivered          OrderStatus = "DELIVERED"
-	StatusCancelled          OrderStatus = "CANCELLED"
-	StatusRefunded           OrderStatus = "REFUNDED"
+	StatusPending           OrderStatus = "PENDING"
+	StatusPaymentProcessing OrderStatus = "PAYMENT_PROCESSING"
+	StatusPaymentConfirmed  OrderStatus = "PAYMENT_CONFIRMED"
+	StatusPreparing         OrderStatus = "PREPARING"
+	StatusShipped           OrderStatus = "SHIPPED"
+	StatusDelivered         OrderStatus = "DELIVERED"
+	StatusCancelled         OrderStatus = "CANCELLED"
+	StatusRefunded          OrderStatus = "REFUNDED"
 )
 
 type UserRole string
