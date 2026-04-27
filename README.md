@@ -92,7 +92,7 @@ PlaceOrder ──► [PENDING]
 ## Project Structure
 
 ```
-ganja-livre/
+ganja_livre/
 ├── cmd/
 │   ├── server/          # HTTP + GraphQL entrypoint
 │   └── worker/          # Temporal worker entrypoint
