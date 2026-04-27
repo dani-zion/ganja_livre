@@ -1,4 +1,4 @@
-module github.com/dani-zion/ganja_livre/api
+module github.com/dani-zion/ganja_livre
 
 go 1.25.0
 
