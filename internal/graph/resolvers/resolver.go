@@ -3,8 +3,8 @@ package resolvers
 import (
 	"errors"
 
-	"github.com/ganja_livre/api/internal/auth"
-	"github.com/ganja_livre/api/internal/mongodb"
+	"github.com/dani-zion/ganja_livre/internal/auth"
+	"github.com/dani-zion/ganja_livre/internal/mongodb"
 	"go.temporal.io/sdk/client"
 )
 

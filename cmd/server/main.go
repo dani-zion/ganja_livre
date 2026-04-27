@@ -25,12 +25,12 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ganja_livre/api/internal/auth"
-	"github.com/ganja_livre/api/internal/config"
-	"github.com/ganja_livre/api/internal/graph/generated"
-	"github.com/ganja_livre/api/internal/graph/resolvers"
-	appmw "github.com/ganja_livre/api/internal/middleware"
-	"github.com/ganja_livre/api/internal/mongodb"
+	"github.com/dani-zion/ganja_livre/internal/auth"
+	"github.com/dani-zion/ganja_livre/internal/config"
+	"github.com/dani-zion/ganja_livre/internal/graph/generated"
+	"github.com/dani-zion/ganja_livre/internal/graph/resolvers"
+	appmw "github.com/dani-zion/ganja_livre/internal/middleware"
+	"github.com/dani-zion/ganja_livre/internal/mongodb"
 )
 
 func main() {
