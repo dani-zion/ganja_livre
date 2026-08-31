@@ -1,6 +1,3 @@
-//go:build ignore
-// +build ignore
-
 package main
 
 import (
@@ -20,7 +17,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
-	"github.com/vektah/gqlparser/v2/ast"
 	"go.temporal.io/sdk/client"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -29,7 +25,8 @@ import (
 	"github.com/dani-zion/ganja_livre/internal/config"
 	"github.com/dani-zion/ganja_livre/internal/graph/generated"
 	"github.com/dani-zion/ganja_livre/internal/graph/resolvers"
-	appmw "github.com/dani-zion/ganja_livre/internal/middleware"
+
+	//appmw "github.com/dani-zion/ganja_livre/internal/middleware"
 	"github.com/dani-zion/ganja_livre/internal/mongodb"
 )
 
@@ -84,7 +81,7 @@ func main() {
 	gqlSrv.Use(extension.FixedComplexityLimit(100))
 
 	// Persisted query cache
-	gqlSrv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+	gqlSrv.SetQueryCache(lru.New(1000))
 
 	// ── Router ───────────────────────────────────────────────────────────────
 	r := chi.NewRouter()
@@ -93,8 +90,8 @@ func main() {
 	r.Use(chimw.RealIP)
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.Timeout(cfg.Server.ReadTimeout))
-	r.Use(appmw.SecurityHeaders())
-	r.Use(appmw.Auth(jwtSvc, log))
+	//r.Use(appmw.SecurityHeaders())
+	//r.Use(appmw.Auth(jwtSvc, log))
 
 	r.Handle("/query", gqlSrv)
 

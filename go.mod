@@ -4,7 +4,9 @@ go 1.25.0
 
 require (
 	github.com/99designs/gqlgen v0.17.49
+	github.com/go-chi/chi/v5 v5.3.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
+	github.com/joho/godotenv v1.5.1
 	github.com/vektah/gqlparser/v2 v2.5.16
 	go.mongodb.org/mongo-driver v1.15.0
 	go.temporal.io/sdk v1.26.1
@@ -19,9 +21,12 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

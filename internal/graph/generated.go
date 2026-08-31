@@ -15,6 +15,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	appmw "github.com/dani-zion/ganja_livre/internal/middleware"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -66,14 +67,14 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CancelOrder       func(childComplexity int, id string) int
-		CreateProduct     func(childComplexity int, input CreateProductInput) int
+		CreateProduct     func(childComplexity int, input appmw.CreateProductInput) int
 		DeleteProduct     func(childComplexity int, id string) int
-		Login             func(childComplexity int, input LoginInput) int
-		PlaceOrder        func(childComplexity int, input PlaceOrderInput) int
+		Login             func(childComplexity int, input appmw.LoginInput) int
+		PlaceOrder        func(childComplexity int, input appmw.PlaceOrderInput) int
 		RefreshToken      func(childComplexity int, token string) int
-		Register          func(childComplexity int, input RegisterInput) int
-		UpdateOrderStatus func(childComplexity int, id string, status OrderStatus) int
-		UpdateProduct     func(childComplexity int, id string, input UpdateProductInput) int
+		Register          func(childComplexity int, input appmw.RegisterInput) int
+		UpdateOrderStatus func(childComplexity int, id string, status appmw.OrderStatus) int
+		UpdateProduct     func(childComplexity int, id string, input appmw.UpdateProductInput) int
 	}
 
 	Order struct {
@@ -133,12 +134,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AllOrders      func(childComplexity int, status *OrderStatus) int
+		AllOrders      func(childComplexity int, status *appmw.OrderStatus) int
 		Me             func(childComplexity int) int
 		MyOrders       func(childComplexity int) int
 		Order          func(childComplexity int, id string) int
 		Product        func(childComplexity int, id string) int
-		Products       func(childComplexity int, filter *ProductFilterInput, first *int, after *string) int
+		Products       func(childComplexity int, filter *appmw.ProductFilterInput, first *int, after *string) int
 		SellerProducts func(childComplexity int) int
 	}
 
@@ -154,24 +155,24 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	Register(ctx context.Context, input RegisterInput) (*AuthPayload, error)
-	Login(ctx context.Context, input LoginInput) (*AuthPayload, error)
-	RefreshToken(ctx context.Context, token string) (*AuthPayload, error)
-	CreateProduct(ctx context.Context, input CreateProductInput) (*Product, error)
-	UpdateProduct(ctx context.Context, id string, input UpdateProductInput) (*Product, error)
+	Register(ctx context.Context, input appmw.RegisterInput) (*appmw.AuthPayload, error)
+	Login(ctx context.Context, input appmw.LoginInput) (*appmw.AuthPayload, error)
+	RefreshToken(ctx context.Context, token string) (*appmw.AuthPayload, error)
+	CreateProduct(ctx context.Context, input appmw.CreateProductInput) (*appmw.Product, error)
+	UpdateProduct(ctx context.Context, id string, input appmw.UpdateProductInput) (*appmw.Product, error)
 	DeleteProduct(ctx context.Context, id string) (bool, error)
-	PlaceOrder(ctx context.Context, input PlaceOrderInput) (*Order, error)
-	CancelOrder(ctx context.Context, id string) (*Order, error)
-	UpdateOrderStatus(ctx context.Context, id string, status OrderStatus) (*Order, error)
+	PlaceOrder(ctx context.Context, input appmw.PlaceOrderInput) (*appmw.Order, error)
+	CancelOrder(ctx context.Context, id string) (*appmw.Order, error)
+	UpdateOrderStatus(ctx context.Context, id string, status appmw.OrderStatus) (*appmw.Order, error)
 }
 type QueryResolver interface {
-	Products(ctx context.Context, filter *ProductFilterInput, first *int, after *string) (*ProductConnection, error)
-	Product(ctx context.Context, id string) (*Product, error)
-	Me(ctx context.Context) (*User, error)
-	MyOrders(ctx context.Context) ([]*Order, error)
-	Order(ctx context.Context, id string) (*Order, error)
-	SellerProducts(ctx context.Context) ([]*Product, error)
-	AllOrders(ctx context.Context, status *OrderStatus) ([]*Order, error)
+	Products(ctx context.Context, filter *appmw.ProductFilterInput, first *int, after *string) (*appmw.ProductConnection, error)
+	Product(ctx context.Context, id string) (*appmw.Product, error)
+	Me(ctx context.Context) (*appmw.User, error)
+	MyOrders(ctx context.Context) ([]*appmw.Order, error)
+	Order(ctx context.Context, id string) (*appmw.Order, error)
+	SellerProducts(ctx context.Context) ([]*appmw.Product, error)
+	AllOrders(ctx context.Context, status *appmw.OrderStatus) ([]*appmw.Order, error)
 }
 
 type executableSchema struct {
@@ -316,7 +317,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Login(childComplexity, args["input"].(LoginInput)), true
+		return e.complexity.Mutation.Login(childComplexity, args["input"].(appmw.LoginInput)), true
 
 	case "Mutation.placeOrder":
 		if e.complexity.Mutation.PlaceOrder == nil {
@@ -328,7 +329,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PlaceOrder(childComplexity, args["input"].(PlaceOrderInput)), true
+		return e.complexity.Mutation.PlaceOrder(childComplexity, args["input"].(appmw.PlaceOrderInput)), true
 
 	case "Mutation.refreshToken":
 		if e.complexity.Mutation.RefreshToken == nil {
@@ -352,7 +353,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Register(childComplexity, args["input"].(RegisterInput)), true
+		return e.complexity.Mutation.Register(childComplexity, args["input"].(appmw.RegisterInput)), true
 
 	case "Mutation.updateOrderStatus":
 		if e.complexity.Mutation.UpdateOrderStatus == nil {
@@ -364,7 +365,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateOrderStatus(childComplexity, args["id"].(string), args["status"].(OrderStatus)), true
+		return e.complexity.Mutation.UpdateOrderStatus(childComplexity, args["id"].(string), args["status"].(appmw.OrderStatus)), true
 
 	case "Mutation.updateProduct":
 		if e.complexity.Mutation.UpdateProduct == nil {
@@ -376,7 +377,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateProduct(childComplexity, args["id"].(string), args["input"].(UpdateProductInput)), true
+		return e.complexity.Mutation.UpdateProduct(childComplexity, args["id"].(string), args["input"].(appmw.UpdateProductInput)), true
 
 	case "Order.buyer":
 		if e.complexity.Order.Buyer == nil {
@@ -654,7 +655,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllOrders(childComplexity, args["status"].(*OrderStatus)), true
+		return e.complexity.Query.AllOrders(childComplexity, args["status"].(*appmw.OrderStatus)), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -704,7 +705,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Products(childComplexity, args["filter"].(*ProductFilterInput), args["first"].(*int), args["after"].(*string)), true
+		return e.complexity.Query.Products(childComplexity, args["filter"].(*appmw.ProductFilterInput), args["first"].(*int), args["after"].(*string)), true
 
 	case "Query.sellerProducts":
 		if e.complexity.Query.SellerProducts == nil {
@@ -912,7 +913,7 @@ func (ec *executionContext) field_Mutation_cancelOrder_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_createProduct_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 CreateProductInput
+	var arg0 appmw.CreateProductInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateProductInput2githubᚗcomᚋganjaLivreᚋapiᚐCreateProductInput(ctx, tmp)
@@ -942,7 +943,7 @@ func (ec *executionContext) field_Mutation_deleteProduct_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 LoginInput
+	var arg0 appmw.LoginInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋganjaLivreᚋapiᚐLoginInput(ctx, tmp)
@@ -957,7 +958,7 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 func (ec *executionContext) field_Mutation_placeOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 PlaceOrderInput
+	var arg0 appmw.PlaceOrderInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNPlaceOrderInput2githubᚗcomᚋganjaLivreᚋapiᚐPlaceOrderInput(ctx, tmp)
@@ -987,7 +988,7 @@ func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context
 func (ec *executionContext) field_Mutation_register_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 RegisterInput
+	var arg0 appmw.RegisterInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNRegisterInput2githubᚗcomᚋganjaLivreᚋapiᚐRegisterInput(ctx, tmp)
@@ -1011,7 +1012,7 @@ func (ec *executionContext) field_Mutation_updateOrderStatus_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
-	var arg1 OrderStatus
+	var arg1 appmw.OrderStatus
 	if tmp, ok := rawArgs["status"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 		arg1, err = ec.unmarshalNOrderStatus2githubᚗcomᚋganjaLivreᚋapiᚐOrderStatus(ctx, tmp)
@@ -1035,7 +1036,7 @@ func (ec *executionContext) field_Mutation_updateProduct_args(ctx context.Contex
 		}
 	}
 	args["id"] = arg0
-	var arg1 UpdateProductInput
+	var arg1 appmw.UpdateProductInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg1, err = ec.unmarshalNUpdateProductInput2githubᚗcomᚋganjaLivreᚋapiᚐUpdateProductInput(ctx, tmp)
@@ -1065,7 +1066,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_allOrders_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *OrderStatus
+	var arg0 *appmw.OrderStatus
 	if tmp, ok := rawArgs["status"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 		arg0, err = ec.unmarshalOOrderStatus2ᚖgithubᚗcomᚋganjaLivreᚋapiᚐOrderStatus(ctx, tmp)
@@ -1110,7 +1111,7 @@ func (ec *executionContext) field_Query_product_args(ctx context.Context, rawArg
 func (ec *executionContext) field_Query_products_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *ProductFilterInput
+	var arg0 *appmw.ProductFilterInput
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
 		arg0, err = ec.unmarshalOProductFilterInput2ᚖgithubᚗcomᚋganjaLivreᚋapiᚐProductFilterInput(ctx, tmp)
