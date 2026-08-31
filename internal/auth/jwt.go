@@ -52,23 +52,23 @@ func (s *Service) IssueTokenPair(userID, email string, role model.UserRole) (*To
 }
 
 // ValidateAccessToken parses and validates an access token.
-func (s *Service) ValidateAccessToken(tokenStr string) (*model.Claims, error) {
+func (s *Service) ValidateAccessToken(tokenStr string) (*customClaims, error) {
 	return s.validate(tokenStr, s.cfg.AccessSecret)
 }
 
 // ValidateRefreshToken parses and validates a refresh token.
-func (s *Service) ValidateRefreshToken(tokenStr string) (*model.Claims, error) {
+func (s *Service) ValidateRefreshToken(tokenStr string) (*customClaims, error) {
 	return s.validate(tokenStr, s.cfg.RefreshSecret)
 }
 
 // ClaimsFromContext extracts user claims from a context.
-func ClaimsFromContext(ctx context.Context) (*model.Claims, bool) {
-	c, ok := ctx.Value(UserClaimsKey).(*model.Claims)
+func ClaimsFromContext(ctx context.Context) (*customClaims, bool) {
+	c, ok := ctx.Value(UserClaimsKey).(*customClaims)
 	return c, ok
 }
 
 // ContextWithClaims injects claims into a context (used by middleware).
-func ContextWithClaims(ctx context.Context, claims *model.Claims) context.Context {
+func ContextWithClaims(ctx context.Context, claims *customClaims) context.Context {
 	return context.WithValue(ctx, UserClaimsKey, claims)
 }
 
@@ -90,7 +90,7 @@ func (s *Service) sign(userID, email string, role model.UserRole, expiry time.Du
 	return token.SignedString([]byte(secret))
 }
 
-func (s *Service) validate(tokenStr, secret string) (*model.Claims, error) {
+func (s *Service) validate(tokenStr, secret string) (*customClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &customClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -107,7 +107,7 @@ func (s *Service) validate(tokenStr, secret string) (*model.Claims, error) {
 		return nil, errors.New("invalid token claims")
 	}
 
-	return &model.Claims{
+	return &customClaims{
 		UserID: cc.UserID,
 		Email:  cc.Email,
 		Role:   cc.Role,
