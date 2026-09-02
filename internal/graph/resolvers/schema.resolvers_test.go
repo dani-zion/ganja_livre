@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -199,6 +200,156 @@ func TestRegister_TokensAreValid(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, payload.User.Email, accessClaims.Email)
 		assert.Equal(t, model.UserRoleCustomer, accessClaims.Role)
+
+		refreshClaims, err := r.jwtSvc.ValidateRefreshToken(payload.RefreshToken)
+		require.NoError(t, err)
+		assert.Equal(t, payload.User.Email, refreshClaims.Email)
+	})
+}
+
+// ─── Login tests ─────────────────────────────────────────────────────────────
+
+func doLogin(r *Resolver, input model.LoginInput) (*model.AuthPayload, error) {
+	return (&mutationResolver{r}).Login(context.Background(), input)
+}
+
+func userDoc(email, passwordHash, name, role string) bson.D {
+	return bson.D{
+		{Key: "_id", Value: primitive.NewObjectID()},
+		{Key: "email", Value: email},
+		{Key: "password_hash", Value: passwordHash},
+		{Key: "name", Value: name},
+		{Key: "role", Value: role},
+		{Key: "is_active", Value: true},
+		{Key: "created_at", Value: time.Now().UTC()},
+		{Key: "updated_at", Value: time.Now().UTC()},
+	}
+}
+
+func TestLogin_Success(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("success", func(mt *mtest.T) {
+		r := registerResolver(mt)
+		hash, _ := bcrypt.GenerateFromPassword([]byte("mypassword"), bcrypt.DefaultCost)
+		doc := userDoc("login@example.com", string(hash), "Login User", "CUSTOMER")
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "ganja_livre.users", mtest.FirstBatch, doc))
+
+		payload, err := doLogin(r, model.LoginInput{
+			Email:    "login@example.com",
+			Password: "mypassword",
+		})
+
+		require.NoError(t, err)
+		assert.NotEmpty(t, payload.AccessToken)
+		assert.NotEmpty(t, payload.RefreshToken)
+		assert.Equal(t, "login@example.com", payload.User.Email)
+		assert.Equal(t, "Login User", payload.User.Name)
+		assert.Equal(t, model.UserRoleCustomer, payload.User.Role)
+	})
+}
+
+func TestLogin_EmptyEmail(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("empty_email", func(mt *mtest.T) {
+		r := registerResolver(mt)
+		_, err := doLogin(r, model.LoginInput{
+			Email:    "",
+			Password: "mypassword",
+		})
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "email and password are required")
+	})
+}
+
+func TestLogin_EmptyPassword(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("empty_password", func(mt *mtest.T) {
+		r := registerResolver(mt)
+		_, err := doLogin(r, model.LoginInput{
+			Email:    "login@example.com",
+			Password: "",
+		})
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "email and password are required")
+	})
+}
+
+func TestLogin_UserNotFound(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("user_not_found", func(mt *mtest.T) {
+		r := registerResolver(mt)
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "ganja_livre.users", mtest.FirstBatch))
+
+		_, err := doLogin(r, model.LoginInput{
+			Email:    "nobody@example.com",
+			Password: "mypassword",
+		})
+
+		require.Error(t, err)
+		assert.Equal(t, errInvalidCredentials, err)
+	})
+}
+
+func TestLogin_WrongPassword(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("wrong_password", func(mt *mtest.T) {
+		r := registerResolver(mt)
+		hash, _ := bcrypt.GenerateFromPassword([]byte("correctpassword"), bcrypt.DefaultCost)
+		doc := userDoc("login@example.com", string(hash), "Login User", "CUSTOMER")
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "ganja_livre.users", mtest.FirstBatch, doc))
+
+		_, err := doLogin(r, model.LoginInput{
+			Email:    "login@example.com",
+			Password: "wrongpassword",
+		})
+
+		require.Error(t, err)
+		assert.Equal(t, errInvalidCredentials, err)
+	})
+}
+
+func TestLogin_WhitespaceEmailTrimmed(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("whitespace_email_trimmed", func(mt *mtest.T) {
+		r := registerResolver(mt)
+		hash, _ := bcrypt.GenerateFromPassword([]byte("mypassword"), bcrypt.DefaultCost)
+		doc := userDoc("login@example.com", string(hash), "Login User", "CUSTOMER")
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "ganja_livre.users", mtest.FirstBatch, doc))
+
+		payload, err := doLogin(r, model.LoginInput{
+			Email:    "  login@example.com  ",
+			Password: "mypassword",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, "login@example.com", payload.User.Email)
+	})
+}
+
+func TestLogin_TokensAreValid(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	mt.Run("tokens_are_valid", func(mt *mtest.T) {
+		r := registerResolver(mt)
+		hash, _ := bcrypt.GenerateFromPassword([]byte("mypassword"), bcrypt.DefaultCost)
+		doc := userDoc("token@example.com", string(hash), "Token User", "SELLER")
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "ganja_livre.users", mtest.FirstBatch, doc))
+
+		payload, err := doLogin(r, model.LoginInput{
+			Email:    "token@example.com",
+			Password: "mypassword",
+		})
+		require.NoError(t, err)
+
+		accessClaims, err := r.jwtSvc.ValidateAccessToken(payload.AccessToken)
+		require.NoError(t, err)
+		assert.Equal(t, payload.User.Email, accessClaims.Email)
+		assert.Equal(t, model.UserRoleSeller, accessClaims.Role)
 
 		refreshClaims, err := r.jwtSvc.ValidateRefreshToken(payload.RefreshToken)
 		require.NoError(t, err)

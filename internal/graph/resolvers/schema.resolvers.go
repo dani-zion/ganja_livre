@@ -13,12 +13,13 @@ import (
 	"github.com/dani-zion/ganja_livre/internal/graph/generated"
 	"github.com/dani-zion/ganja_livre/internal/graph/model"
 	dbmodel "github.com/dani-zion/ganja_livre/internal/model"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Register is the resolver for the register field.
+// Register new users.
 func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInput) (*model.AuthPayload, error) {
 	input.Email = strings.TrimSpace(input.Email)
 	input.Name = strings.TrimSpace(input.Name)
@@ -76,7 +77,42 @@ func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInp
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.AuthPayload, error) {
-	panic(fmt.Errorf("not implemented: Login - login"))
+	input.Email = strings.TrimSpace(input.Email)
+
+	if input.Email == "" || input.Password == "" {
+		return nil, fmt.Errorf("email and password are required")
+	}
+
+	var user dbmodel.User
+	err := r.cols.Users.FindOne(ctx, bson.M{"email": input.Email}).Decode(&user)
+	if err == mongo.ErrNoDocuments {
+		return nil, errInvalidCredentials
+	}
+	if err != nil {
+		return nil, errInternal
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
+		return nil, errInvalidCredentials
+	}
+
+	tokens, err := r.jwtSvc.IssueTokenPair(user.ID.Hex(), user.Email, model.UserRole(user.Role))
+	if err != nil {
+		return nil, errInternal
+	}
+
+	return &model.AuthPayload{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		User: &model.User{
+			ID:        user.ID.Hex(),
+			Email:     user.Email,
+			Name:      user.Name,
+			Role:      model.UserRole(user.Role),
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		},
+	}, nil
 }
 
 // RefreshToken is the resolver for the refreshToken field.

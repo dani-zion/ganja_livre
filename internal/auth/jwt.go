@@ -21,8 +21,8 @@ type TokenPair struct {
 	RefreshToken string
 }
 
-// customClaims extends jwt.RegisteredClaims with our domain fields.
-type customClaims struct {
+// Claims holds the JWT payload fields exposed to the application.
+type Claims struct {
 	UserID string         `json:"uid"`
 	Email  string         `json:"email"`
 	Role   model.UserRole `json:"role"`
@@ -52,23 +52,23 @@ func (s *Service) IssueTokenPair(userID, email string, role model.UserRole) (*To
 }
 
 // ValidateAccessToken parses and validates an access token.
-func (s *Service) ValidateAccessToken(tokenStr string) (*customClaims, error) {
+func (s *Service) ValidateAccessToken(tokenStr string) (*Claims, error) {
 	return s.validate(tokenStr, s.cfg.AccessSecret)
 }
 
 // ValidateRefreshToken parses and validates a refresh token.
-func (s *Service) ValidateRefreshToken(tokenStr string) (*customClaims, error) {
+func (s *Service) ValidateRefreshToken(tokenStr string) (*Claims, error) {
 	return s.validate(tokenStr, s.cfg.RefreshSecret)
 }
 
 // ClaimsFromContext extracts user claims from a context.
-func ClaimsFromContext(ctx context.Context) (*customClaims, bool) {
-	c, ok := ctx.Value(UserClaimsKey).(*customClaims)
+func ClaimsFromContext(ctx context.Context) (*Claims, bool) {
+	c, ok := ctx.Value(UserClaimsKey).(*Claims)
 	return c, ok
 }
 
 // ContextWithClaims injects claims into a context (used by middleware).
-func ContextWithClaims(ctx context.Context, claims *customClaims) context.Context {
+func ContextWithClaims(ctx context.Context, claims *Claims) context.Context {
 	return context.WithValue(ctx, UserClaimsKey, claims)
 }
 
@@ -76,7 +76,7 @@ func ContextWithClaims(ctx context.Context, claims *customClaims) context.Contex
 
 func (s *Service) sign(userID, email string, role model.UserRole, expiry time.Duration, secret string) (string, error) {
 	now := time.Now().UTC()
-	claims := &customClaims{
+	claims := &Claims{
 		UserID: userID,
 		Email:  email,
 		Role:   role,
@@ -90,8 +90,8 @@ func (s *Service) sign(userID, email string, role model.UserRole, expiry time.Du
 	return token.SignedString([]byte(secret))
 }
 
-func (s *Service) validate(tokenStr, secret string) (*customClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &customClaims{}, func(t *jwt.Token) (interface{}, error) {
+func (s *Service) validate(tokenStr, secret string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
@@ -102,12 +102,12 @@ func (s *Service) validate(tokenStr, secret string) (*customClaims, error) {
 		return nil, err
 	}
 
-	cc, ok := token.Claims.(*customClaims)
+	cc, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
 		return nil, errors.New("invalid token claims")
 	}
 
-	return &customClaims{
+	return &Claims{
 		UserID: cc.UserID,
 		Email:  cc.Email,
 		Role:   cc.Role,

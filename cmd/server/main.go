@@ -26,7 +26,7 @@ import (
 	"github.com/dani-zion/ganja_livre/internal/graph/generated"
 	"github.com/dani-zion/ganja_livre/internal/graph/resolvers"
 
-	//appmw "github.com/dani-zion/ganja_livre/internal/middleware"
+	appmw "github.com/dani-zion/ganja_livre/internal/middleware"
 	"github.com/dani-zion/ganja_livre/internal/mongodb"
 )
 
@@ -90,8 +90,8 @@ func main() {
 	r.Use(chimw.RealIP)
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.Timeout(cfg.Server.ReadTimeout))
-	//r.Use(appmw.SecurityHeaders())
-	//r.Use(appmw.Auth(jwtSvc, log))
+	r.Use(appmw.SecurityHeaders())
+	r.Use(appmw.Auth(jwtSvc, log))
 
 	r.Handle("/query", gqlSrv)
 

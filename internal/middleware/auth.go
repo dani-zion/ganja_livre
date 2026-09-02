@@ -1,6 +1,3 @@
-//go:build ignore
-// +build ignore
-
 package middleware
 
 import (
@@ -61,8 +58,8 @@ func SecurityHeaders() func(http.Handler) http.Handler {
 
 // ─── RBAC helpers used inside resolvers ──────────────────────────────────────
 
-// RequireAuth panics with a resolver error if no claims are in context.
-func RequireAuth(ctx context.Context) (*model.Claims, error) {
+// RequireAuth returns the claims from context or an UNAUTHENTICATED error.
+func RequireAuth(ctx context.Context) (*auth.Claims, error) {
 	claims, ok := auth.ClaimsFromContext(ctx)
 	if !ok || claims == nil {
 		return nil, ErrUnauthenticated
@@ -71,7 +68,7 @@ func RequireAuth(ctx context.Context) (*model.Claims, error) {
 }
 
 // RequireRole checks that the authenticated user has one of the allowed roles.
-func RequireRole(ctx context.Context, roles ...model.UserRole) (*model.Claims, error) {
+func RequireRole(ctx context.Context, roles ...model.UserRole) (*auth.Claims, error) {
 	claims, err := RequireAuth(ctx)
 	if err != nil {
 		return nil, err
