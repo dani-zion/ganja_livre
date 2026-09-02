@@ -29,3 +29,4 @@ docker/temporal-dynamic-config.yaml/
 # ── Temp / Misc ──────────────────────────────────────────────────────────────
 tmp/
 *.log
+*.txt
