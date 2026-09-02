@@ -7,15 +7,71 @@ package resolvers
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
-	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/dani-zion/ganja_livre/internal/graph/generated"
 	"github.com/dani-zion/ganja_livre/internal/graph/model"
+	dbmodel "github.com/dani-zion/ganja_livre/internal/model"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Register is the resolver for the register field.
 func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInput) (*model.AuthPayload, error) {
-	panic(fmt.Errorf("not implemented: Register - register"))
+	input.Email = strings.TrimSpace(input.Email)
+	input.Name = strings.TrimSpace(input.Name)
+
+	if input.Email == "" || input.Password == "" || input.Name == "" {
+		return nil, fmt.Errorf("email, password, and name are required")
+	}
+	if len(input.Password) < 8 {
+		return nil, fmt.Errorf("password must be at least 8 characters")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errInternal
+	}
+
+	now := time.Now().UTC()
+	user := dbmodel.User{
+		ID:           primitive.NewObjectID(),
+		Email:        input.Email,
+		PasswordHash: string(hash),
+		Name:         input.Name,
+		Role:         dbmodel.RoleCustomer,
+		IsActive:     true,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+
+	_, err = r.cols.Users.InsertOne(ctx, user)
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return nil, errEmailTaken
+		}
+		return nil, errInternal
+	}
+
+	tokens, err := r.jwtSvc.IssueTokenPair(user.ID.Hex(), user.Email, model.UserRole(user.Role))
+	if err != nil {
+		return nil, errInternal
+	}
+
+	return &model.AuthPayload{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		User: &model.User{
+			ID:        user.ID.Hex(),
+			Email:     user.Email,
+			Name:      user.Name,
+			Role:      model.UserRole(user.Role),
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		},
+	}, nil
 }
 
 // Login is the resolver for the login field.
@@ -34,12 +90,12 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 }
 
 // UpdateProduct is the resolver for the updateProduct field.
-func (r *mutationResolver) UpdateProduct(ctx context.Context, id introspection.Field, input model.UpdateProductInput) (*model.Product, error) {
+func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input model.UpdateProductInput) (*model.Product, error) {
 	panic(fmt.Errorf("not implemented: UpdateProduct - updateProduct"))
 }
 
 // DeleteProduct is the resolver for the deleteProduct field.
-func (r *mutationResolver) DeleteProduct(ctx context.Context, id introspection.Field) (bool, error) {
+func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (bool, error) {
 	panic(fmt.Errorf("not implemented: DeleteProduct - deleteProduct"))
 }
 
@@ -49,12 +105,12 @@ func (r *mutationResolver) PlaceOrder(ctx context.Context, input model.PlaceOrde
 }
 
 // CancelOrder is the resolver for the cancelOrder field.
-func (r *mutationResolver) CancelOrder(ctx context.Context, id introspection.Field) (*model.Order, error) {
+func (r *mutationResolver) CancelOrder(ctx context.Context, id string) (*model.Order, error) {
 	panic(fmt.Errorf("not implemented: CancelOrder - cancelOrder"))
 }
 
 // UpdateOrderStatus is the resolver for the updateOrderStatus field.
-func (r *mutationResolver) UpdateOrderStatus(ctx context.Context, id introspection.Field, status model.OrderStatus) (*model.Order, error) {
+func (r *mutationResolver) UpdateOrderStatus(ctx context.Context, id string, status model.OrderStatus) (*model.Order, error) {
 	panic(fmt.Errorf("not implemented: UpdateOrderStatus - updateOrderStatus"))
 }
 
@@ -64,7 +120,7 @@ func (r *queryResolver) Products(ctx context.Context, filter *model.ProductFilte
 }
 
 // Product is the resolver for the product field.
-func (r *queryResolver) Product(ctx context.Context, id introspection.Field) (*model.Product, error) {
+func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product, error) {
 	panic(fmt.Errorf("not implemented: Product - product"))
 }
 
@@ -79,7 +135,7 @@ func (r *queryResolver) MyOrders(ctx context.Context) ([]*model.Order, error) {
 }
 
 // Order is the resolver for the order field.
-func (r *queryResolver) Order(ctx context.Context, id introspection.Field) (*model.Order, error) {
+func (r *queryResolver) Order(ctx context.Context, id string) (*model.Order, error) {
 	panic(fmt.Errorf("not implemented: Order - order"))
 }
 

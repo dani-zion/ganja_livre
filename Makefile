@@ -22,7 +22,7 @@ down-volumes: ## Stop containers AND delete all data volumes
 # ── Code generation ───────────────────────────────────────────────────────────
 
 generate: ## Run gqlgen to regenerate GraphQL boilerplate
-	go run github.com/99designs/gqlgen generate
+	go tool gqlgen generate
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 

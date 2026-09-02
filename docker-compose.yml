@@ -74,7 +74,7 @@ services:
       - POSTGRES_SEEDS=temporal-postgresql
       - DYNAMIC_CONFIG_FILE_PATH=/etc/temporal/dynamicconfig/docker.yaml
     volumes:
-      - ./docker/temporal-dynamic-config.yaml:/etc/temporal/dynamicconfig/docker.yaml:ro
+      - ./config/temporal-dynamic-config.yaml:/etc/temporal/dynamicconfig/docker.yaml:ro
     ports:
       - "7233:7233"
     networks:

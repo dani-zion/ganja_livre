@@ -43,7 +43,6 @@ autobind:
 models:
   ID:
     model:
-      - github.com/99designs/gqlgen/graphql/introspection.Field
       - github.com/99designs/gqlgen/graphql.ID
   Int:
     model:
